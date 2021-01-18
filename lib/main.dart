@@ -1,25 +1,65 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'dart:math';
 
 void main() => runApp(ColorwheelApp());
 
 class ColorwheelApp extends StatelessWidget {
-  final List<Color> colorWheel = [Color(0xFFFF0000)];
+  final List<Color> colorWheelColors = [Color(0xFFFF0000)];
 
   @override
   Widget build(BuildContext context) {
-    fillColorWheel(colorWheel);
+    fillColorWheel(colorWheelColors);
     return MaterialApp(
       home: Scaffold(
         body: SafeArea(
-          child: Container(
-            decoration: ShapeDecoration(
-              gradient: SweepGradient(
-                colors: colorWheel,
-              ),
-              shape: CircleBorder(
-                side: BorderSide(),
-              ),
-            ),
+          child: ColorWheelTouch(colorWheel: colorWheelColors),
+        ),
+      ),
+    );
+  }
+}
+
+class ColorWheelTouch extends StatelessWidget {
+  const ColorWheelTouch({
+    Key key,
+    @required this.colorWheel,
+  }) : super(key: key);
+
+  final List<Color> colorWheel;
+
+  @override
+  Widget build(BuildContext context) {
+    var wheelSize = MediaQuery.of(context).size;
+    var height = wheelSize.height;
+    var width = wheelSize.width;
+    var center = wheelSize.center(Offset.zero);
+
+    return GestureDetector(
+      onTapUp: (TapUpDetails tapDeets) {
+        var centered = tapDeets.localPosition - center;
+        var theta = atan2(centered.dy, centered.dx);
+
+        print(tapDeets.globalPosition);
+        print(tapDeets.localPosition);
+        print('height ' + height.toString() + ' width ' + width.toString());
+        print('center ' + center.toString());
+        print('centered points ' + (centered).toString());
+        print(theta * (180 / pi)); // convert to degrees
+        print('length ' +
+            colorWheel.length.toString() +
+            ' first: ' +
+            colorWheel.first.toString() +
+            ' last: ' +
+            colorWheel.last.toString());
+      },
+      child: Container(
+        decoration: ShapeDecoration(
+          gradient: SweepGradient(
+            colors: colorWheel,
+          ),
+          shape: CircleBorder(
+            side: BorderSide(),
           ),
         ),
       ),
