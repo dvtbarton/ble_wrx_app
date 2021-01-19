@@ -39,19 +39,28 @@ class ColorWheelTouch extends StatelessWidget {
       onTapUp: (TapUpDetails tapDeets) {
         var centered = tapDeets.localPosition - center;
         var theta = atan2(centered.dy, centered.dx);
+        var elementMap = colorWheel.length / (2 * pi);
+        int element = (theta * elementMap).round();
 
         print(tapDeets.globalPosition);
         print(tapDeets.localPosition);
         print('height ' + height.toString() + ' width ' + width.toString());
         print('center ' + center.toString());
         print('centered points ' + (centered).toString());
-        print(theta * (180 / pi)); // convert to degrees
+        print(theta.toString() + 'Rad'); // radians
+        print((theta * (180 / pi)).toString() + '°'); // convert to degrees
         print('length ' +
             colorWheel.length.toString() +
             ' first: ' +
             colorWheel.first.toString() +
             ' last: ' +
             colorWheel.last.toString());
+        print('Element at ' +
+            theta.toString() +
+            'Rad [' +
+            element.toString() +
+            '] = ' +
+            colorWheel.elementAt(element).toString());
       },
       child: Container(
         decoration: ShapeDecoration(
@@ -68,6 +77,8 @@ class ColorWheelTouch extends StatelessWidget {
 }
 
 void fillColorWheel(List<Color> colors) {
+  // Starts with red on the left side of the circle (0°)
+  // and sweeps clockwise from red to blue, blue to green, green to red
   //..............alpha  R  G  B
   // red to purple 0xFF FF 00 ↑↑
   for (var i = 1; i <= 0xff; i++) {
