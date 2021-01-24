@@ -33,68 +33,24 @@ class ColorWheelTouch extends StatefulWidget {
 class _ColorWheelTouchState extends State<ColorWheelTouch> {
   int colorValue = 0;
 
+  void setColorValue(int newColorValue) {
+    setState(() {
+      colorValue = newColorValue;
+    });
+    print('colorValue set to: 0x' + colorValue.toRadixString(16));
+  }
+
   @override
   Widget build(BuildContext context) {
-    var wheelSize = MediaQuery.of(context).size;
-    var height = wheelSize.height;
-    var width = wheelSize.width;
-    var center = wheelSize.center(Offset.zero);
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Expanded(
           flex: 2,
-          child: GestureDetector(
-            onTapDown: (TapDownDetails tapDeets) {
-              var wheelCenter = this.context.findRenderObject() as RenderBox;
-              wheelCenter.visitChildren((child) {
-                return child.semanticBounds.center;
-              });
-              var centered = tapDeets.localPosition -
-                  wheelCenter.size.center(Offset(
-                      wheelCenter.semanticBounds.width,
-                      wheelCenter.semanticBounds.height));
-              var theta = atan2(centered.dy, centered.dx);
-              var elementMap = widget.colorWheel.length / (2 * pi);
-              int element = (theta * elementMap).round();
-              if (element < 0) element += (widget.colorWheel.length);
-              // setState(() {
-              //   colorValue = widget.colorWheel.elementAt(element).value;
-              //   print('colorValue set to: 0x' + colorValue.toRadixString(16));
-              // });
-              print(tapDeets.globalPosition);
-              print(tapDeets.localPosition);
-              print(
-                  'height ' + height.toString() + ' width ' + width.toString());
-              print('center ' + center.toString());
-              print('centered points ' + (centered).toString());
-              print(theta.toString() + 'Rad'); // radians
-              print(
-                  (theta * (180 / pi)).toString() + '°'); // convert to degrees
-              print('length ' +
-                  widget.colorWheel.length.toString() +
-                  ' first: ' +
-                  widget.colorWheel.first.toString() +
-                  ' last: ' +
-                  widget.colorWheel.last.toString());
-              print('Element at ' +
-                  theta.toString() +
-                  'Rad [' +
-                  element.toString() +
-                  '] = ');
-              print(colorValue.toRadixString(16));
-            },
-            child: Container(
-              decoration: ShapeDecoration(
-                gradient: SweepGradient(
-                  colors: widget.colorWheel,
-                ),
-                shape: CircleBorder(
-                  side: BorderSide(),
-                ),
-              ),
-            ),
+          child: ColorWheelGestureDetector(
+            widget: widget,
+            setColorValue: setColorValue,
           ),
         ),
         Expanded(
@@ -106,6 +62,44 @@ class _ColorWheelTouchState extends State<ColorWheelTouch> {
           ),
         ),
       ],
+    );
+  }
+}
+
+class ColorWheelGestureDetector extends StatelessWidget {
+  ColorWheelGestureDetector(
+      {@required this.widget, @required this.setColorValue});
+
+  final ColorWheelTouch widget;
+  final Function setColorValue;
+
+  Offset getCenter(BuildContext context) {
+    var center = context.findRenderObject() as RenderBox;
+    return center.paintBounds.center;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTapDown: (TapDownDetails tapDeets) {
+        Offset center = getCenter(context);
+        var centered = tapDeets.localPosition - center;
+        var theta = atan2(centered.dy, centered.dx);
+        var elementMap = widget.colorWheel.length / (2 * pi);
+        int element = (theta * elementMap).round();
+        if (element < 0) element += (widget.colorWheel.length);
+        setColorValue(widget.colorWheel.elementAt(element).value);
+      },
+      child: Container(
+        decoration: ShapeDecoration(
+          gradient: SweepGradient(
+            colors: widget.colorWheel,
+          ),
+          shape: CircleBorder(
+            side: BorderSide(),
+          ),
+        ),
+      ),
     );
   }
 }
