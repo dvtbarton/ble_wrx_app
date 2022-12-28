@@ -1,13 +1,15 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'dart:math';
+// import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 
 void main() => runApp(ColorwheelApp());
 
 class ColorwheelApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    List<Color> colorWheelColors = fillColorWheel(colors: new List<Color>());
+    List<Color>? colorWheelColors = [];
+    colorWheelColors = fillColorWheel(colors: colorWheelColors);
 
     return MaterialApp(
         theme: ThemeData.dark()
@@ -18,11 +20,11 @@ class ColorwheelApp extends StatelessWidget {
 
 class ColorWheelTouch extends StatefulWidget {
   const ColorWheelTouch({
-    Key key,
-    @required this.colorWheel,
+    Key? key,
+    /*required*/ required this.colorWheel,
   }) : super(key: key);
 
-  final List<Color> colorWheel;
+  final List<Color>? colorWheel;
 
   @override
   _ColorWheelTouchState createState() => _ColorWheelTouchState();
@@ -32,6 +34,9 @@ class _ColorWheelTouchState extends State<ColorWheelTouch> {
   int colorWheelValue = 0xFFFF0000;
   int appBarColor = 0xFFFF0000;
   int colorLED = 0xFF0000; // to be sent over Bluetooth
+  int r = 0;
+  int g = 0;
+  int b = 0;
   double dimValue = 1.0;
   double whiteValue = 1.0;
 
@@ -118,7 +123,6 @@ class _ColorWheelTouchState extends State<ColorWheelTouch> {
   void setLedWhite(double newWhiteValue) {
     whiteValue = newWhiteValue;
 
-    int r, g, b;
     r = (colorWheelValue >> 0x10) & 0xFF;
     g = (colorWheelValue >> 0x08) & 0xFF;
     b = colorWheelValue & 0xFF;
@@ -142,7 +146,6 @@ class _ColorWheelTouchState extends State<ColorWheelTouch> {
 
   void setLedDim(double newDimValue) {
     dimValue = newDimValue;
-    int r, g, b;
 
     // extract the individual rgb values
     r = (colorWheelValue >> 0x10) & 0xFF;
@@ -173,7 +176,7 @@ class _ColorWheelTouchState extends State<ColorWheelTouch> {
 
 class ColorWheelGestureDetector extends StatelessWidget {
   ColorWheelGestureDetector(
-      {@required this.widget, @required this.setColorValue});
+      {required this.widget, required this.setColorValue});
 
   final ColorWheelTouch widget;
   final Function setColorValue;
@@ -191,15 +194,15 @@ class ColorWheelGestureDetector extends StatelessWidget {
         Offset center = getCenter(context);
         var centered = tapDeets.localPosition - center;
         var theta = atan2(centered.dy, centered.dx);
-        var elementMap = widget.colorWheel.length / (2 * pi);
+        var elementMap = widget.colorWheel!.length / (2 * pi);
         int element = (theta * elementMap).round();
-        if (element < 0) element += (widget.colorWheel.length);
-        setColorValue(widget.colorWheel.elementAt(element).value);
+        if (element < 0) element += (widget.colorWheel!.length);
+        setColorValue(widget.colorWheel!.elementAt(element).value);
       },
       child: Container(
         decoration: ShapeDecoration(
           gradient: SweepGradient(
-            colors: widget.colorWheel,
+            colors: widget.colorWheel!,
           ),
           shape: CircleBorder(
             side: BorderSide(),
@@ -210,43 +213,43 @@ class ColorWheelGestureDetector extends StatelessWidget {
   }
 }
 
-List<Color> fillColorWheel({List<Color> colors}) {
+List<Color>? fillColorWheel({List<Color>? colors}) {
   // Starts with red on the left side of the circle (0°)
   // and sweeps clockwise from red to blue, blue to green, green to red
   //..............alpha  R  G  B
   // red to purple 0xFF FF 00 ↑↑
   for (var i = 1; i <= 0xff; i++) {
-    colors.add(Color(0xFFFF0000 + i));
+    colors!.add(Color(0xFFFF0000 + i));
   }
 
   //...............alpha  R  G  B
   // purple to blue 0xFF ↓↓ 00 FF
   for (var i = 1; i < 0xff; i++) {
-    colors.add(Color(0xFFFF00FF - (i << 0x10)));
+    colors!.add(Color(0xFFFF00FF - (i << 0x10)));
   }
 
   //.............alpha  R  G  B
   // blue to cyan 0xFF 00 ↑↑ FF
   for (var i = 1; i < 0xff; i++) {
-    colors.add(Color(0xFF0000FF + (i << 0x8)));
+    colors!.add(Color(0xFF0000FF + (i << 0x8)));
   }
 
   //..............alpha  R  G  B
   // cyan to green 0xFF 00 FF ↓↓
   for (var i = 1; i <= 0xff; i++) {
-    colors.add(Color(0xFF00FFFF - i));
+    colors!.add(Color(0xFF00FFFF - i));
   }
 
   //................alpha  R  G  B
   // green to yellow 0xFF ↑↑ FF 00
   for (var i = 1; i < 0xff; i++) {
-    colors.add(Color(0xFF00FF00 + (i << 0x10)));
+    colors!.add(Color(0xFF00FF00 + (i << 0x10)));
   }
 
   //..............alpha  R  G  B
   // yellow to red 0xFF FF ↓↓ 00
   for (var i = 1; i < 0xff; i++) {
-    colors.add(Color(0xFFFFFF00 - (i << 0x8)));
+    colors!.add(Color(0xFFFFFF00 - (i << 0x8)));
   }
 
   return colors;
@@ -257,7 +260,7 @@ class GradientRectSliderTrackShape extends SliderTrackShape
     with BaseSliderTrackShape {
   /// Create a slider track that draws two rectangles with rounded outer edges.
   const GradientRectSliderTrackShape(
-      {@required this.startColor, @required this.endColor});
+      {required this.startColor, required this.endColor});
   final Color startColor;
   final Color endColor;
 
@@ -265,11 +268,11 @@ class GradientRectSliderTrackShape extends SliderTrackShape
   void paint(
     PaintingContext context,
     Offset offset, {
-    @required RenderBox parentBox,
-    @required SliderThemeData sliderTheme,
-    @required Animation<double> enableAnimation,
-    @required TextDirection textDirection,
-    @required Offset thumbCenter,
+    required RenderBox parentBox,
+    required SliderThemeData sliderTheme,
+    required Animation<double> enableAnimation,
+    required TextDirection textDirection,
+    required Offset thumbCenter,
     bool isDiscrete = false,
     bool isEnabled = false,
     double additionalActiveTrackHeight = 2,
@@ -289,7 +292,7 @@ class GradientRectSliderTrackShape extends SliderTrackShape
     // If the slider [SliderThemeData.trackHeight] is less than or equal to 0,
     // then it makes no difference whether the track is painted or not,
     // therefore the painting  can be a no-op.
-    if (sliderTheme.trackHeight <= 0) {
+    if (sliderTheme.trackHeight! <= 0) {
       return;
     }
 
@@ -316,12 +319,12 @@ class GradientRectSliderTrackShape extends SliderTrackShape
         end: sliderTheme.inactiveTrackColor);
     final Paint activePaint = Paint()
       ..shader = gradient.createShader(trackRect)
-      ..color = activeTrackColorTween.evaluate(enableAnimation);
+      ..color = activeTrackColorTween.evaluate(enableAnimation)!;
     final Paint inactivePaint = Paint()
       ..shader = gradient.createShader(trackRect)
-      ..color = activeTrackColorTween.evaluate(enableAnimation);
-    Paint leftTrackPaint;
-    Paint rightTrackPaint;
+      ..color = activeTrackColorTween.evaluate(enableAnimation)!;
+    late Paint leftTrackPaint;
+    late Paint rightTrackPaint;
     switch (textDirection) {
       case TextDirection.ltr:
         leftTrackPaint = activePaint;
